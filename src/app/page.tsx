@@ -15,7 +15,7 @@ export default function Home() {
 
   return (
     <main className="container">
-      {isSignedIn ?  <SignOutButton /> : <SignInButton />}      
+      
       {
         isSignedIn && (
           <form onSubmit={async (e) => {
@@ -25,6 +25,8 @@ export default function Home() {
             const title = formData.get('title') as string
             await createThumbnail({
               title,
+              aImage: "",
+              bImage: ""
             })
             form.reset();
           }}>
