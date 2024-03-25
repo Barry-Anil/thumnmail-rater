@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import clsx from "clsx";
 import {isEmpty} from 'lodash'
+import { useRouter } from "next/navigation";
 
 const defaultErrorState = {
     title: '',
@@ -29,6 +30,7 @@ export default function CreatePage() {
 
     const [errors, setErrors] = useState(defaultErrorState)
     const {toast} = useToast()
+    const router = useRouter();
 
     console.log(url, "image test a ")
 
@@ -39,47 +41,55 @@ export default function CreatePage() {
             <p className="text-lg max-w-md mb-6">start a your new journey with us</p>
 
             <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                     e.preventDefault();
                     const form = e.target as HTMLFormElement;
                     const formData = new FormData(form);
                     const title = formData.get("title") as string;
-                    setErrors(() => defaultErrorState)
-                    if(!title){
-                        setErrors((currentErrors) => ({
-                            ...currentErrors ?? {},
-                            title: "Please fill in this required field",
-                        }))
+                    let newErrors = {
+                      ...defaultErrorState,
+                    };
+          
+                    if (!title) {
+                      newErrors = {
+                        ...newErrors,
+                        title: "please fill in this required field",
+                      };
+                    }
+          
+                    if (!imageA) {
+                      newErrors = {
+                        ...newErrors,
+                        imageA: "please fill in this required field",
+                      };
+                    }
+          
+                    if (!imageB) {
+                      newErrors = {
+                        ...newErrors,
+                        imageB: "please fill in this required field",
+                      };
+                    }
+          
+                    setErrors(newErrors);
+                    const hasErrors = Object.values(newErrors).some(Boolean);
+          
+                    if (hasErrors) {
+                      toast({
+                        title: "Form Errors",
+                        description: "Please fill fields on the page",
+                        variant: "destructive",
+                      });
+                      return;
                     }
 
-                    if(!imageA){
-                        setErrors((currentErrors) => ({
-                            ...currentErrors ?? {},
-                            imageA: "Please fill in this required field",
-                        }))
-                    }
-
-                    if(!imageB){
-                        setErrors((currentErrors) => ({
-                            ...currentErrors ?? {},
-                            imageB: "Please fill in this required field",
-                        }))
-                    }
-
-                    if(!isEmpty(errors)){
-                        toast({
-                            title: "Form Errors",
-                            description: "Please fill in all fields on the page.",
-                            variant: "destructive"
-                          })
-                        return ;
-                    }
-
-                    createThumbnail({
+                    const thumbnailId = await createThumbnail({
                         aImage: imageA,
                         bImage: imageB,
                         title,
                     })
+
+                    router.push(`/thumbnails/${thumbnailId}`)
 
                 }}
             >
